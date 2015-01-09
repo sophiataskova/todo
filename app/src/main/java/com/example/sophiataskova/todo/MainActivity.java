@@ -6,35 +6,30 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity  implements EditItemDialog.EditItemDialogListener {
 
-    List<TodoItem> items;
-    List<String> itemsContents;
-    ArrayAdapter<String> itemsAdapter;
-    ListView lvItems;
-    TodoItemDatabase db;
+    private List<TodoItem> items;
+    private CustomToDoItemAdapter itemsAdapter;
+    private ListView lvItems;
+    private TodoItemDatabase db;
+    private int positionToEdit;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         lvItems = (ListView) findViewById(R.id.listView);
-        itemsContents = new ArrayList();
         db = new TodoItemDatabase(this);
         items = db.getAllItems();
-        for (TodoItem item : items) {
-            itemsContents.add(item.getContent());
-        }
-        itemsAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, itemsContents);
+        itemsAdapter = new CustomToDoItemAdapter(this, items);
         lvItems.setAdapter(itemsAdapter);
 
         setupListViewListener();
@@ -46,9 +41,15 @@ public class MainActivity extends ActionBarActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 db.deleteItem(items.get(position));
                 items.remove(position);
-                itemsContents.remove(position);
                 itemsAdapter.notifyDataSetChanged();
                 return true;
+            }
+        });
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                positionToEdit = position;
+                showEditDialog();
             }
         });
     }
@@ -78,12 +79,28 @@ public class MainActivity extends ActionBarActivity {
             TodoItem itemToAdd = new TodoItem((itemText));
             db.addItem(itemToAdd);
             items.add(itemToAdd);
-            itemsAdapter.add(itemToAdd.getContent());
             itemsAdapter.notifyDataSetChanged();
             etNewItem.setText("");
         }
         else {
             Toast.makeText(getApplicationContext(), "Please enter text", Toast.LENGTH_SHORT).show();
         }
+    }
+    private void showEditDialog() {
+        EditItemDialog editNameDialog = EditItemDialog.newInstance("Edit item");
+        editNameDialog.show(getFragmentManager(), "fragment_edit_content");
+    }
+
+    @Override
+    public void onFinishEditDialog(String inputText) {
+        if (inputText.equals("")) {
+            Toast.makeText(this, "Please enter a nonempty string! To delete an item, long-press", Toast.LENGTH_SHORT).show();
+        } else {
+            TodoItem itemBeingEdited = items.get(positionToEdit);
+            itemBeingEdited.setContent(inputText);
+            db.updateItem(itemBeingEdited);
+            itemsAdapter.notifyDataSetChanged();
+        }
+
     }
 }
