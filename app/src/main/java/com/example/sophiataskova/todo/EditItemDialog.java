@@ -25,10 +25,11 @@ public class EditItemDialog extends DialogFragment implements TextView.OnEditorA
         // Empty constructor required for DialogFragment
     }
 
-    public static EditItemDialog newInstance(String title) {
+    public static EditItemDialog newInstance(String title, String prefill) {
         EditItemDialog frag = new EditItemDialog();
         Bundle args = new Bundle();
         args.putString("title", title);
+        args.putString("prefill", prefill);
         frag.setArguments(args);
         return frag;
     }
@@ -40,9 +41,10 @@ public class EditItemDialog extends DialogFragment implements TextView.OnEditorA
         mEditText = (EditText) view.findViewById(R.id.txt_new_content);
         mDoneButton = (Button) view.findViewById(R.id.done_button);
 
-        String title = getArguments().getString("title", "Edit Item");
+        String title = getArguments().getString("title", getResources().getString(R.string.edit_item_label));
+        String prefill = getArguments().getString("prefill", "");
         getDialog().setTitle(title);
-
+        mEditText.setText(prefill);
         mEditText.requestFocus();
         getDialog().getWindow().setSoftInputMode(
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
@@ -50,7 +52,7 @@ public class EditItemDialog extends DialogFragment implements TextView.OnEditorA
         mDoneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                applyChanges();
+                applyContentChanges();
             }
         });
         return view;
@@ -59,15 +61,18 @@ public class EditItemDialog extends DialogFragment implements TextView.OnEditorA
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (EditorInfo.IME_ACTION_DONE == actionId) {
-            applyChanges();
+            applyContentChanges();
             return true;
         }
         return false;
     }
 
-    private void applyChanges() {
+    private void applyContentChanges() {
         EditItemDialogListener listener = (EditItemDialogListener) getActivity();
+
         listener.onFinishEditDialog(mEditText.getText().toString());
+        ((MainActivity)getActivity()).dismissKeyboard();
         dismiss();
+
     }
 }

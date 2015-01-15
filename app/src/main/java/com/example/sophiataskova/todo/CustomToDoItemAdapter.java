@@ -22,6 +22,9 @@ public class CustomToDoItemAdapter extends ArrayAdapter<TodoItem> {
         }
         TextView tvContent = (TextView) convertView.findViewById(R.id.item_content);
         tvContent.setText(item.getContent());
+        TextView tvDueDate = (TextView) convertView.findViewById(R.id.item_due_date);
+        String dueDateString = TodoItemDatabase.sdf.format(item.getDueDate());
+        tvDueDate.setText(dueDateString);
         return convertView;
     }
 }

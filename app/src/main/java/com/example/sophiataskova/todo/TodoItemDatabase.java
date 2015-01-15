@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,9 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
 
     private static final String KEY_ID = "id";
     private static final String KEY_CONTENT = "content";
+    private static final String KEY_DUE_DATE = "due_date";
+
+    public static SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yy");
 
 
     public TodoItemDatabase(Context context) {
@@ -28,7 +32,7 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         // SQL for creating the tables
         String CREATE_TODO_TABLE = "CREATE TABLE " + ITEMS_TABLE + "("
-                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_CONTENT + " TEXT)";
+                + KEY_ID + " INTEGER PRIMARY KEY," + KEY_CONTENT + " TEXT," + KEY_DUE_DATE + " DATETIME" + ")";
         db.execSQL(CREATE_TODO_TABLE);
     }
 
@@ -49,6 +53,7 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_CONTENT, item.getContent());
+        values.put(KEY_DUE_DATE, sdf.format(item.getDueDate()));
 
         db.insert(ITEMS_TABLE, null, values);
         db.close();
@@ -59,13 +64,13 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor cursor = db.query(ITEMS_TABLE, new String[] { KEY_ID,
-                        KEY_CONTENT }, KEY_ID + "=?",
+                        KEY_CONTENT, KEY_DUE_DATE }, KEY_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
         TodoItem todoItem = new TodoItem(Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1));
+                cursor.getString(1), cursor.getString(2));
 
         return todoItem;
     }
@@ -81,7 +86,7 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                TodoItem todoItem = new TodoItem(Integer.parseInt(cursor.getString(0)), cursor.getString(1));
+                TodoItem todoItem = new TodoItem(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getString(2));
                 // Adding todoItem to list
                 todoItems.add(todoItem);
             } while (cursor.moveToNext());
@@ -94,6 +99,7 @@ public class TodoItemDatabase extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_CONTENT, item.getContent());
+        values.put(KEY_DUE_DATE, sdf.format(item.getDueDate()));
 
         // updating row
         return db.update(ITEMS_TABLE, values, KEY_ID + " = ?",
