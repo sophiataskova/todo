@@ -8,10 +8,17 @@ public class TodoItem {
     private int mId;
     private Date mDueDate;
     private String mContent;
+    private Priority mPriority;
 
-    public TodoItem(final int id, final String content, final String date) {
+    public enum Priority {
+        LOW, MED, HIGH
+    }
+
+    public TodoItem(final int id, final String content, final String priority, final String date) {
         mId = id;
         mContent = content;
+
+        mPriority = Priority.valueOf(priority);
         try {
             mDueDate = TodoItemDatabase.sdf.parse(date);
         } catch (ParseException e) {
@@ -19,8 +26,9 @@ public class TodoItem {
         }
     }
 
-    public TodoItem(final String content, String date) {
+    public TodoItem(final String content, final String priority, String date) {
         mContent = content;
+        mPriority = Priority.valueOf(priority);
         try {
             mDueDate = TodoItemDatabase.sdf.parse(date);
         } catch (ParseException e) {
@@ -44,7 +52,11 @@ public class TodoItem {
         mContent = content;
     }
 
-    public void setDate(Date dueDate) {
-        mDueDate = dueDate;
+    public void setPriority(Priority priority) {
+        mPriority = priority;
+    }
+
+    public Priority getPriority() {
+        return mPriority;
     }
 }

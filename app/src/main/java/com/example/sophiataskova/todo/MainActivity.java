@@ -26,7 +26,9 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
     private int mItemPosition;
     private Date mItemDate;
     private String mItemContent;
+    private TodoItem.Priority mPriority;
     private EditText etNewItem;
+    private EditItemDialog mEditItemDialog;
 
 
 
@@ -59,7 +61,7 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mItemPosition = position;
-                showEditDialog(items.get(position).getContent());
+                showEditDialog(items.get(position).getContent(), items.get(position).getPriority().name());
             }
         });
     }
@@ -85,6 +87,7 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
     public void onAddItem(View v) {
 
         mItemContent = etNewItem.getText().toString();
+        mPriority = TodoItem.Priority.LOW;
 
         if (!mItemContent.equals("")) {
             mItemDate = new Date(System.currentTimeMillis());
@@ -97,7 +100,7 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
     }
 
     private void insertItem(EditText etNewItem, String itemText) {
-        TodoItem itemToAdd = new TodoItem(itemText, TodoItemDatabase.sdf.format(mItemDate));
+        TodoItem itemToAdd = new TodoItem(itemText, TodoItem.Priority.LOW.name(), TodoItemDatabase.sdf.format(mItemDate));
         addTodoItem(etNewItem, itemToAdd);
     }
 
@@ -108,9 +111,9 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
         etNewItem.setText("");
     }
 
-    private void showEditDialog(String prefillText) {
-        EditItemDialog editNameDialog = EditItemDialog.newInstance(getResources().getString(R.string.edit_item_label), prefillText);
-        editNameDialog.show(getFragmentManager(), "fragment_edit_content");
+    private void showEditDialog(String prefillText, String priority) {
+        mEditItemDialog = EditItemDialog.newInstance(getResources().getString(R.string.edit_item_label), prefillText, priority);
+        mEditItemDialog.show(getFragmentManager(), "fragment_edit_content");
     }
 
     private void showDatePickerDialog(View v) {
@@ -119,12 +122,13 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
     }
 
     @Override
-    public void onFinishEditDialog(String inputText) {
+    public void onFinishEditDialog(String inputText, TodoItem.Priority priority) {
         if (inputText.equals("")) {
             Toast.makeText(this, getResources().getString(R.string.edit_empty_string_error), Toast.LENGTH_SHORT).show();
         } else {
             TodoItem itemBeingEdited = items.get(mItemPosition);
             itemBeingEdited.setContent(inputText);
+            itemBeingEdited.setPriority(priority);
             db.updateItem(itemBeingEdited);
             itemsAdapter.notifyDataSetChanged();
         }
@@ -142,6 +146,5 @@ public class MainActivity extends ActionBarActivity  implements EditItemDialog.E
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(etNewItem.getWindowToken(), 0);
     }
-
 
 }

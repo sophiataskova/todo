@@ -10,7 +10,7 @@
         android:layout_gravity="center_vertical"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:background="@drawable/circle"
+        android:background="@drawable/green_circle"
         android:paddingLeft="10dp"
         android:paddingRight="10dp" />
 
